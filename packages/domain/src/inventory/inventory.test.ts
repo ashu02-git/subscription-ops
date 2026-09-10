@@ -9,12 +9,14 @@ describe("Inventory", () => {
       sku: "SKU-A",
       lots: [
         Lot.create({
-          id: "LOT-1",
+          sku: "SKU-A",
+          lotNumber: "LOT-1",
           quantity: 10,
           expiresAt: date("2026-09-15"),
         }),
         Lot.create({
-          id: "LOT-2",
+          sku: "SKU-A",
+          lotNumber: "LOT-2",
           quantity: 20,
           expiresAt: date("2026-12-01"),
         }),
@@ -29,7 +31,8 @@ describe("Inventory", () => {
       sku: "SKU-A",
       lots: [
         Lot.create({
-          id: "LOT-1",
+          sku: "SKU-A",
+          lotNumber: "LOT-1",
           quantity: 10,
           expiresAt: date("2026-09-23"),
         }),

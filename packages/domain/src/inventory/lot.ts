@@ -1,5 +1,6 @@
 export type LotProps = {
-  id: string;
+  sku: string;
+  lotNumber: string;
   quantity: number;
   expiresAt: Date;
 };
@@ -9,14 +10,15 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export class Lot {
   private constructor(
-    readonly id: string,
+    readonly sku: string,
+    readonly lotNumber: string,
     readonly quantity: number,
     readonly expiresAt: Date,
   ) {}
 
   static create(props: LotProps): Lot {
     if (props.quantity < 0) throw new Error("quantity must be >= 0");
-    return new Lot(props.id, props.quantity, props.expiresAt);
+    return new Lot(props.sku, props.lotNumber, props.quantity, props.expiresAt);
   }
 
   isAllocatableOn(on: Date): boolean {
