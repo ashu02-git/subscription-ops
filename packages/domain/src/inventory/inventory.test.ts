@@ -40,6 +40,71 @@ describe("Inventory", () => {
     });
   });
 
+  describe("引当計画", () => {
+    test("期限が近いロットから順に引き、足りなければ次のロットに進む", () => {
+      const inventory = Inventory.of({
+        sku: "SKU-A",
+        lots: [
+          // わざと期限順を崩して渡す（実装がソートすることを検証する）
+          createLot({
+            lotNumber: "LOT-3",
+            quantity: 20,
+            expiresAt: date("2026-12-01"),
+          }),
+          createLot({
+            lotNumber: "LOT-1",
+            quantity: 10,
+            expiresAt: date("2026-09-15"),
+          }),
+          createLot({
+            lotNumber: "LOT-2",
+            quantity: 10,
+            expiresAt: date("2026-11-01"),
+          }),
+        ],
+      });
+
+      const plan = inventory.planAllocation({
+        quantity: 15,
+        on: date("2026-09-09"),
+      });
+
+      expect(plan).toEqual([
+        { lotNumber: "LOT-2", quantity: 10 },
+        { lotNumber: "LOT-3", quantity: 5 },
+      ]);
+    });
+
+    test("既に引当済みの数量はロットの残数から差し引く", () => {
+      const inventory = Inventory.of({
+        sku: "SKU-A",
+        lots: [
+          createLot({
+            lotNumber: "LOT-2",
+            quantity: 10,
+            expiresAt: date("2026-11-01"),
+          }),
+          createLot({
+            lotNumber: "LOT-3",
+            quantity: 20,
+            expiresAt: date("2026-12-01"),
+          }),
+        ],
+      });
+
+      const plan = inventory.planAllocation({
+        quantity: 10,
+        on: date("2026-09-09"),
+        allocatedByLot: [{ lotNumber: "LOT-2", quantity: 5 }],
+      });
+
+      expect(plan).toEqual([
+        { lotNumber: "LOT-2", quantity: 5 },
+        { lotNumber: "LOT-3", quantity: 5 },
+      ]);
+    });
+  });
+
   describe("入荷", () => {
     test("入荷すると物理在庫が増える", () => {
       const inventory = Inventory.of({

@@ -5,6 +5,17 @@ export type InventoryProps = {
   lots: readonly Lot[];
 };
 
+export type LotAllocation = {
+  lotNumber: string;
+  quantity: number;
+};
+
+export type PlanAllocationInput = {
+  quantity: number;
+  on: Date;
+  allocatedByLot?: readonly LotAllocation[];
+};
+
 export class Inventory {
   private constructor(
     readonly sku: string,
@@ -46,5 +57,33 @@ export class Inventory {
 
   receive(lot: Lot): Inventory {
     return Inventory.of({ sku: this.sku, lots: [...this.lots, lot] });
+  }
+
+  planAllocation(input: PlanAllocationInput): LotAllocation[] {
+    const { quantity, on, allocatedByLot = [] } = input;
+
+    const allocated = new Map(
+      allocatedByLot.map((a) => [a.lotNumber, a.quantity]),
+    );
+
+    const candidates = this.lots
+      .filter((lot) => lot.isAllocatableOn(on))
+      .toSorted((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime());
+
+    const plan: LotAllocation[] = [];
+    let remaining = quantity;
+
+    for (const lot of candidates) {
+      if (remaining === 0) break;
+
+      const available = lot.quantity - (allocated.get(lot.lotNumber) ?? 0);
+      if (available <= 0) continue;
+
+      const take = Math.min(available, remaining);
+      plan.push({ lotNumber: lot.lotNumber, quantity: take });
+      remaining -= take;
+    }
+
+    return plan;
   }
 }
